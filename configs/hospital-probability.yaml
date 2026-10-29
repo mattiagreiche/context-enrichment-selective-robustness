@@ -1,0 +1,37 @@
+schema_version: 1
+scenario: hospital
+prompt_version: pilot_v4
+study_stage: development
+measurement_protocol: first_action_branch_v1
+prompt_bytes_changed: false
+design:
+  social_worlds: 2
+  context_conditions: 5
+  surface_versions: 4
+  prompt_templates: 40
+calls_per_template: 5
+authorized_batches: 2
+cumulative_calls_per_template: 10
+model_snapshots: [gpt-5.6-sol, gpt-5.6-terra]
+maximum_total_calls_per_model: 200
+maximum_total_calls_per_model_across_batches: 400
+maximum_total_calls_across_models: 800
+provider_repetitions_are_seeded: false
+estimand:
+  name: conditional_first_action_branch_transfer_probability
+  labels: [TRANSFER, RETAIN]
+  exact_full_string_probability: false
+  missing_branch_policy: censored_not_zero
+sampling_spec:
+  temperature: 0.7
+  reasoning_effort: none
+  top_p: {mode: omitted_provider_default, value: null}
+  logprobs: {mode: first_action_branch, top_logprobs: 20}
+  max_output_tokens: 64
+  timeout_seconds: 60.0
+  transport_retries: 0
+  content_retries: 0
+  response_api: responses
+  store: false
+  provider_seed: unsupported_omitted
+authorization_artifact: experiments/studies/hospital_pilot/probability_design.yaml

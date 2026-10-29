@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "silisocs-selective-robustness"
+version = "0.1.0"
+description = "SiliSocS study of selective robustness in LLM social agents"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+dependencies = [
+    "PyYAML>=6.0",
+    "silisocs @ git+https://github.com/sandbox-social/silisocs.git@ebe652257eafe0eb64e43e90b45aa7bccd732383",
+]
+
+[project.optional-dependencies]
+analysis = ["scipy>=1.11", "matplotlib>=3.8"]
+live = ["openai>=1.68,<2", "python-dotenv>=1.0"]
+dev = ["pytest>=8"]
+
+[project.scripts]
+selective-robustness = "selective_robustness.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

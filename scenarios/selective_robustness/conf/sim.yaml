@@ -1,0 +1,59 @@
+llm:
+  provider: scripted
+  name: scripted-hospital-pilot
+  temperature: ${sampling_spec.temperature}
+  api_base: https://api.openai.com/v1
+  api_key: null
+  disabled: false
+  extra_kwargs: ${provider_extra_kwargs}
+
+max_concurrent_actions: 1
+action_mode: generic
+tool_calling:
+  mode: none
+prompt_additions:
+  action_count_guidance: false
+
+initialization:
+  agents:
+    built_in: none
+    class_path: null
+    params: {}
+  game_masters:
+    built_in: default
+    class_path: null
+    params: {}
+  simulation:
+    built_in: none
+    class_path: null
+    params: {}
+
+checkpoint:
+  every_n_steps: null
+  explicit_steps: []
+  source_run: null
+  auto_resume: false
+  restore:
+    built_in: social_action_event_replay
+    class_path: null
+    params: {}
+
+engine:
+  class_path: null
+  params: {}
+  loop:
+    built_in: fixed_steps
+    class_path: null
+    params: {}
+  step:
+    built_in: base
+    class_path: null
+    params:
+      flow_order: [default]
+      agent_to_flow: {}
+  turn_policy:
+    built_in: single_action
+    class_path: null
+    params: {}
+
+roleplaying_instructions: ""

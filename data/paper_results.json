@@ -1,0 +1,186 @@
+{
+  "schema_version": 1,
+  "measurement_protocol": "first_action_branch_v1",
+  "calls_per_cell": 10,
+  "bootstrap": {
+    "method": "within-cell nonparametric percentile bootstrap",
+    "resamples": 10000,
+    "interval": "95% (2.5th and 97.5th percentiles)",
+    "censoring": "midpoint of conservative missing-branch tail bound"
+  },
+  "models": {
+    "Sol": {
+      "pooled_ten_call_estimates": {
+        "minimal": {
+          "surface_sensitivity_pp": 34.129486337021135,
+          "surface_sensitivity_ci95_low_pp": 30.315321077123688,
+          "surface_sensitivity_ci95_high_pp": 40.25901156292106,
+          "world_response_pp": 33.85844711128628,
+          "world_response_ci95_low_pp": 27.985669888264944,
+          "world_response_ci95_high_pp": 40.19980573902675
+        },
+        "neutral_padded": {
+          "surface_sensitivity_pp": 14.24754070830182,
+          "surface_sensitivity_ci95_low_pp": 10.667095012965117,
+          "surface_sensitivity_ci95_high_pp": 17.784776229241793,
+          "world_response_pp": 6.689018563715127,
+          "world_response_ci95_low_pp": 1.169102901839592,
+          "world_response_ci95_high_pp": 12.20495866916353
+        },
+        "generic_background": {
+          "surface_sensitivity_pp": 27.869776973638427,
+          "surface_sensitivity_ci95_low_pp": 21.335229768361216,
+          "surface_sensitivity_ci95_high_pp": 33.669293924879234,
+          "world_response_pp": 51.12147744961519,
+          "world_response_ci95_low_pp": 45.20965296365976,
+          "world_response_ci95_high_pp": 56.60858137681585
+        },
+        "decision_grounded": {
+          "surface_sensitivity_pp": 3.6777174273081767,
+          "surface_sensitivity_ci95_low_pp": 1.7749159223164086,
+          "surface_sensitivity_ci95_high_pp": 5.976908215081743,
+          "world_response_pp": 85.8965134535704,
+          "world_response_ci95_low_pp": 82.41785987012662,
+          "world_response_ci95_high_pp": 88.91527351876893
+        },
+        "normative_grounded": {
+          "surface_sensitivity_pp": 3.9459911560492675,
+          "surface_sensitivity_ci95_low_pp": 3.3091206218223506,
+          "surface_sensitivity_ci95_high_pp": 4.596017348537909,
+          "world_response_pp": 91.96694128001238,
+          "world_response_ci95_low_pp": 91.00122742378547,
+          "world_response_ci95_high_pp": 92.94747774615345
+        }
+      },
+      "status_counts": {
+        "complete": 239,
+        "censored_missing_transfer_branch": 143,
+        "censored_missing_retain_branch": 18
+      }
+    },
+    "Terra": {
+      "pooled_ten_call_estimates": {
+        "minimal": {
+          "surface_sensitivity_pp": 19.771079004213743,
+          "surface_sensitivity_ci95_low_pp": 14.566911320131716,
+          "surface_sensitivity_ci95_high_pp": 26.87893645194791,
+          "world_response_pp": 38.5894399512764,
+          "world_response_ci95_low_pp": 29.508894029925763,
+          "world_response_ci95_high_pp": 47.8652519515747
+        },
+        "neutral_padded": {
+          "surface_sensitivity_pp": 15.431809874958988,
+          "surface_sensitivity_ci95_low_pp": 13.597971798069715,
+          "surface_sensitivity_ci95_high_pp": 20.207565456753837,
+          "world_response_pp": 23.684106531880964,
+          "world_response_ci95_low_pp": 17.508574318514462,
+          "world_response_ci95_high_pp": 29.79799084015151
+        },
+        "generic_background": {
+          "surface_sensitivity_pp": 30.603782281397557,
+          "surface_sensitivity_ci95_low_pp": 24.81911853700786,
+          "surface_sensitivity_ci95_high_pp": 38.113002926376055,
+          "world_response_pp": -2.10156089529198,
+          "world_response_ci95_low_pp": -10.817499393922189,
+          "world_response_ci95_high_pp": 7.089354564991246
+        },
+        "decision_grounded": {
+          "surface_sensitivity_pp": 13.164068380650033,
+          "surface_sensitivity_ci95_low_pp": 10.239855595521734,
+          "surface_sensitivity_ci95_high_pp": 18.265061828110515,
+          "world_response_pp": 57.200369500911805,
+          "world_response_ci95_low_pp": 50.02961735581247,
+          "world_response_ci95_high_pp": 64.07297768705752
+        },
+        "normative_grounded": {
+          "surface_sensitivity_pp": 15.048848793434905,
+          "surface_sensitivity_ci95_low_pp": 14.156993197108342,
+          "surface_sensitivity_ci95_high_pp": 15.785905091213385,
+          "world_response_pp": 77.14476417402231,
+          "world_response_ci95_low_pp": 76.04079908030054,
+          "world_response_ci95_high_pp": 78.49349043591661
+        }
+      },
+      "status_counts": {
+        "censored_missing_retain_branch": 142,
+        "censored_missing_transfer_branch": 36,
+        "complete": 222
+      }
+    }
+  },
+  "source_summary_sha256": {
+    "Sol_initial_source_summary_sha256": "ff048f19e6a140525399282b0c7cc94a2e795947d22774438d665c23a31a6422",
+    "Sol_extension_source_summary_sha256": "4b130a54e3da2d787811a2f60bdae1ff1b31501f4fffb857284044ca423cd3d2",
+    "Terra_initial_source_summary_sha256": "60af235433be4fd8f062178f3bc6eb723d136584b1abd5ca7fe31e42adefdb6d",
+    "Terra_extension_source_summary_sha256": "68b396b72c9ef48f7a688057347224e5886e895b0b60d283558941ec37dd10cb"
+  },
+  "censoring_sensitivity": {
+    "max_change_from_midpoint_pp": 0.4875866916371816,
+    "models": {
+      "Sol": {
+        "minimal": [
+          33.98417078205404,
+          34.27480189198822,
+          33.64047377883564,
+          34.07642044373692
+        ],
+        "neutral_padded": [
+          13.93553308042855,
+          14.735127399939001,
+          6.22100712190522,
+          7.1570300055250335
+        ],
+        "generic_background": [
+          27.773624676702163,
+          27.965929270574684,
+          50.97724900421079,
+          51.26570589501958
+        ],
+        "decision_grounded": [
+          3.6589419405715082,
+          3.700972012240935,
+          85.86179157502627,
+          85.93123533211454
+        ],
+        "normative_grounded": [
+          3.802155701693705,
+          4.089853276991488,
+          91.75147309557157,
+          92.1824094644532
+        ]
+      },
+      "Terra": {
+        "minimal": [
+          19.710443160866426,
+          19.83693617878351,
+          38.49848618625542,
+          38.68039371629736
+        ],
+        "neutral_padded": [
+          15.398190949432387,
+          15.46542880048559,
+          23.633678143591055,
+          23.734534920170862
+        ],
+        "generic_background": [
+          30.51313858294147,
+          30.694425979853644,
+          -2.237526442976115,
+          -1.9655953476078445
+        ],
+        "decision_grounded": [
+          13.00306093376406,
+          13.349582434066265,
+          56.92209842078745,
+          57.47864058103617
+        ],
+        "normative_grounded": [
+          14.91405682981597,
+          15.233512509408436,
+          76.86790858933239,
+          77.42161975871223
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,109 @@
+schema_version: 1
+
+study:
+  name: hospital_first_action_branch_development
+  stage: development
+  prompt_version: pilot_v4
+  measurement_protocol: first_action_branch_v1
+  confirmatory_data: false
+  runtime: silisocs
+  scenario_config: scenarios/selective_robustness/conf
+
+question: >-
+  Across the complete five-condition hospital family, how stable is the
+  model's first action-branch probability under meaning-preserving surfaces,
+  and how does that probability respond to the regional/local world contrast?
+
+estimand:
+  name: conditional_first_action_branch_transfer_probability
+  decision_point: first_non_whitespace_output_token
+  transfer_branch: returned token bytes compatible with the prefix of TRANSFER
+  retain_branch: returned token bytes compatible with the prefix of RETAIN
+  formula: transfer_reported_mass / (transfer_reported_mass + retain_reported_mass)
+  exact_full_string_probability: false
+  missing_branch_policy: censored_not_zero
+  top_logprob_tail_reported: true
+  completion_fidelity_required: true
+  action_frequency_results_pooled: false
+
+factors:
+  social_world: [regional_mutual_aid, local_emergency_reserve]
+  context_condition:
+    - minimal
+    - neutral_padded
+    - generic_background
+    - decision_grounded
+    - normative_grounded
+  surface_version:
+    - canonical_prose
+    - bullets
+    - key_value_table
+    - alternative_prose
+
+expected_prompt_templates: 40
+calls_per_template: 5
+authorized_batches: 2
+cumulative_calls_per_template: 10
+model_snapshots: [gpt-5.6-sol, gpt-5.6-terra]
+
+stimulus_contract:
+  status: reviewed
+  prompt_source: frozen_pilot_v4
+  prompt_bytes_changed: false
+  response_instruction_changed: false
+  response_labels: [TRANSFER, RETAIN]
+  review_status: complete
+
+status:
+  prompt_review: complete
+  human_manipulation_check: complete
+  ethics_determination: complete
+  paid_calls_authorized: true
+  authorization_basis: direct_study_owner_extension_approval_2026-08-29
+  execution_requires_separate_exact_operator_acknowledgement: true
+
+pilot_workflow:
+  maximum_total_calls: 200
+  maximum_calls_across_authorized_models: 400
+  maximum_calls_across_authorized_models_and_batches: 800
+  randomization_seed: 2026082701
+  extension_randomization_seeds: [2026082901, 2026082902]
+  condition_ids: null
+  sampling_spec:
+    temperature: 0.7
+    reasoning_effort: none
+    top_p:
+      mode: omitted_provider_default
+      value: null
+    logprobs:
+      mode: first_action_branch
+      top_logprobs: 20
+    max_output_tokens: 64
+    timeout_seconds: 60.0
+    transport_retries: 0
+    content_retries: 0
+    response_api: responses
+    store: false
+    provider_seed: unsupported_omitted
+  retry_policy:
+    transport_retries: 0
+    content_retries: 0
+    automatic_replacement_calls: false
+  immutable_manifest: run_manifest.json
+  manifest_hash: run_manifest.sha256
+  append_only_state: run_state.jsonl
+  provider_ledger: prompts_and_responses.jsonl
+
+analysis:
+  repetitions_are_provider_seeds: false
+  independent_fresh_requests_per_cell_per_batch: 5
+  pooled_independent_fresh_requests_per_cell: 10
+  pooling_rule: pool the two manifest-bound batches within identical cells and models
+  cell_summary: [mean, sample_sd, minimum, maximum]
+  surface_sensitivity: mean_absolute_difference_from_canonical
+  substantive_response: mean_regional_minus_local_over_surfaces
+  report_alongside_each_estimate:
+    - returned_action_branch_mass
+    - unreturned_top_logprob_tail_mass
+    - censored_observation_count
+    - completion_mismatch_count

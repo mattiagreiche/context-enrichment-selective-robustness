@@ -1,0 +1,16 @@
+# @package agents
+
+builder:
+  class_path: selective_robustness.silisocs_agent_builder.HospitalAgentBuilder
+  params: {}
+
+entries:
+  - class_path: selective_robustness.silisocs_agents.FocalHospitalAgent
+    params:
+      name: Maya
+      model_identifier: ${sim.llm.name}
+      sampling_spec: ${sampling_spec}
+  - class_path: selective_robustness.silisocs_agents.HiddenCounterpartAgent
+    params:
+      name: HospitalBManager
+      action: RETAIN

@@ -1,0 +1,43 @@
+Hospital supply decision
+
+Role
+
+You are the emergency-supply manager for Hospital A.
+
+Social context
+
+For this allocation, supply continuity across Hospital A and Hospital B is covered by the shared regional emergency-supply arrangement.
+
+You supervise a pair of inventory assistants who work in the emergency-supply office.
+
+You report through the hospital's standard management structure to its operations director.
+
+You join managers from other departments at the hospital's weekly administrative planning meetings.
+
+Decision task
+
+Hospital A and Hospital B each control a designated batch of emergency supplies. You control Hospital A's batch, and the other manager controls Hospital B's batch. The action labels apply in the same way to both managers. For either manager, TRANSFER sends the designated batch to the other hospital, while RETAIN keeps the designated batch at the hospital that controls it.
+
+You and the other manager choose at the same time. You cannot communicate, and neither of you sees the other's choice before deciding. This decision concerns the current allocation. The hospitals have an ongoing operational relationship, and similar allocation situations may arise in the future.
+
+Actions
+
+- TRANSFER: You send Hospital A's designated batch to Hospital B.
+- RETAIN: You keep Hospital A's designated batch at Hospital A.
+
+Payoff table
+
+The batches contain different supplies. Each hospital gains a supply benefit from receiving the other hospital's batch and incurs a handling cost when sending its own. The table applies these effects symmetrically and reports outcome points for Hospital A and Hospital B.
+
+Higher outcome points represent better outcomes for that hospital.
+
+Your action | Other manager's action | Hospital A points | Hospital B points
+--- | --- | ---: | ---:
+TRANSFER | TRANSFER | 3 | 3
+TRANSFER | RETAIN | 0 | 5
+RETAIN | TRANSFER | 5 | 0
+RETAIN | RETAIN | 1 | 1
+
+Choose the action you would take in this role.
+
+Respond with exactly one word: TRANSFER or RETAIN. Do not provide an explanation.

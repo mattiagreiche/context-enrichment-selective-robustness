@@ -1,0 +1,71 @@
+# @package _global_
+
+scenario_name: selective_robustness_hospital
+jobname_format: "SELECTIVE_${social_world}_${context_condition}_${surface_version}_seed${seed}"
+num_agents: 2
+# One decision step and one payoff-only finalization step.
+num_steps: 2
+seed: 0
+run_name: hospital_development
+output_rootname: null
+
+social_world: regional_mutual_aid
+context_condition: minimal
+surface_version: canonical_prose
+prompt_version: draft_v0
+# Credential-free smoke values only. A live run must override this entire
+# canonical specification from its immutable pilot manifest.
+sampling_spec:
+  temperature: 0.3
+  reasoning_effort: none
+  top_p:
+    mode: omitted_provider_default
+    value: null
+  max_output_tokens: 64
+  timeout_seconds: 60.0
+  transport_retries: 0
+  content_retries: 0
+  response_api: responses
+  store: false
+  provider_seed: unsupported_omitted
+provider_extra_kwargs:
+  text_response: TRANSFER
+condition_id: "hospital/${social_world}/${context_condition}/${surface_version}"
+call_id: "${condition_id}/seed-${seed}"
+replicate_id: replicate-0001
+episode_id: ${call_id}
+
+selective:
+  study_stage: development
+  scenario: hospital
+  social_world: ${social_world}
+  context_condition: ${context_condition}
+  surface_version: ${surface_version}
+  prompt_version: ${prompt_version}
+  condition_id: ${condition_id}
+  call_id: ${call_id}
+  replicate_id: ${replicate_id}
+  episode_id: ${episode_id}
+  seed: ${seed}
+  model: ${sim.llm.name}
+  sampling_spec: ${sampling_spec}
+  focal_agent: Maya
+  counterpart: HospitalBManager
+  counterpart_excluded_from_primary_analysis: true
+
+setting:
+  name: Hospital emergency-supply decision
+  background:
+    - One focal manager makes one private choice in a simultaneous two-party game.
+
+event:
+  name: Single-shot hospital supply episode
+  context: A controlled social decision rendered from a versioned prompt cell.
+
+roles:
+  participant: {}
+shared_memories:
+  - Hospital decision runtime initialized.
+initial_observations:
+  - Hospital decision runtime initialized.
+data: {}
