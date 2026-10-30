@@ -1,4 +1,4 @@
-"""Verify released call data and regenerate the paper's measures and figure.
+"""Verify released call data and recompute the paper's measures.
 
 Run from any directory: python analysis/reproduce.py
 """
@@ -115,39 +115,6 @@ def analyze(values: dict, paper: dict, *, seed: int = 20260923) -> dict:
     return result
 
 
-def figure(paper: dict, output: Path) -> None:
-    import matplotlib.pyplot as plt
-
-    colors = ("#6b7280", "#b7791f", "#347d9d", "#3d8a5d", "#754e9b")
-    markers = ("o", "s", "D", "^", "P")
-    fig, axes = plt.subplots(1, 2, figsize=(10, 4.5), sharex=True, sharey=True)
-    for ax, model in zip(axes, MODELS):
-        saved = paper["models"][model]["pooled_ten_call_estimates"]
-        xs = [saved[name]["surface_sensitivity_pp"] for name in CONTEXTS]
-        ys = [saved[name]["world_response_pp"] for name in CONTEXTS]
-        ax.plot(xs, ys, color="#aaaaaa", linewidth=1, zorder=1)
-        for i, name in enumerate(CONTEXTS):
-            row = saved[name]
-            x, y = xs[i], ys[i]
-            ax.errorbar(x, y,
-                xerr=[[x - row["surface_sensitivity_ci95_low_pp"]], [row["surface_sensitivity_ci95_high_pp"] - x]],
-                yerr=[[y - row["world_response_ci95_low_pp"]], [row["world_response_ci95_high_pp"] - y]],
-                color=colors[i], marker=markers[i], capsize=2, markersize=6, linewidth=1.1,
-                label=name.replace("_", " "), zorder=2)
-        ax.set_title(model)
-        ax.axhline(0, color="#dddddd", linewidth=0.8)
-        ax.grid(alpha=0.15)
-    axes[0].set_ylabel("Regional minus local transfer probability (pp)")
-    for ax in axes:
-        ax.set_xlabel("Mean surface sensitivity (pp)")
-    handles, labels = axes[1].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="lower center", ncol=5, frameon=False, fontsize=8)
-    fig.tight_layout(rect=(0, 0.08, 1, 1))
-    output.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output)
-    plt.close(fig)
-
-
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, default=ROOT / "results/reproduction")
@@ -156,7 +123,6 @@ def main() -> None:
     result = analyze(values, paper)
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "recomputed.json").write_text(json.dumps(result, indent=2) + "\n")
-    figure(paper, args.output / "selective-robustness-contexts.pdf")
     print(f"Verified 800 calls, 80 cells, 339 censored calls; wrote {args.output}")
 
 

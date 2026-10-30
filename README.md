@@ -9,7 +9,8 @@ This repository contains the materials for the hospital pilot reported in *A Fra
 - `experiments/studies/hospital_pilot/probability_design.yaml` and `configs/hospital-probability.yaml`: the paper's probability protocol and sampling settings.
 - `data/paper_calls.csv`: the 800 call-level probability estimates and censoring bounds.
 - `data/paper_results.json`: the published cell-level measures and bootstrap intervals.
-- `analysis/reproduce.py` and `analysis/censoring.py`: validate the released data, recompute the measures and censoring ranges, run a fresh 10,000-resample within-cell bootstrap, and generate a figure.
+- `analysis/reproduce.py` and `analysis/censoring.py`: validate the released data, recompute the measures and censoring ranges, and run a fresh 10,000-resample within-cell bootstrap.
+- `analysis/figure_selective_robustness.py`: regenerates the paper's labeled figure as PDF and SVG from the released result values.
 
 Earlier development pilots and action-frequency experiments are not part of this release.
 
@@ -24,9 +25,10 @@ uv run selective-robustness probability-plan
 uv run selective-robustness smoke
 uv run python analysis/reproduce.py
 uv run python analysis/censoring.py
+uv run python analysis/figure_selective_robustness.py
 ```
 
-The commands above make no model API calls. The smoke command uses a scripted SiliSocS model and writes to ignored `results/`. The analysis writes `results/reproduction/recomputed.json` and a PDF figure. Its point estimates are checked against `data/paper_results.json` to numerical precision. The newly resampled bootstrap endpoints can differ slightly from those stored in `paper_results.json` because the original bootstrap random seed was not retained in the saved summary; the method and 10,000-resample count are the same.
+The commands above make no model API calls. The smoke command uses a scripted SiliSocS model and writes to ignored `results/`. The analysis writes `results/reproduction/recomputed.json`; the figure script writes PDF and SVG files beside it. Its point estimates are checked against `data/paper_results.json` to numerical precision. The newly resampled bootstrap endpoints can differ slightly from those stored in `paper_results.json` because the original bootstrap random seed was not retained in the saved summary; the method and 10,000-resample count are the same.
 
 ## Rerun the model experiment
 
