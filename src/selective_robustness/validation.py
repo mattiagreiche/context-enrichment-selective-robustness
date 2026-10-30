@@ -1,11 +1,9 @@
-"""Credential-free validation and diagnostics for the draft prompt family."""
+"""Credential-free validation and diagnostics for the hospital prompts."""
 
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from hashlib import sha256
-import json
-from pathlib import Path
 from typing import Any
 
 from .catalog import (
@@ -138,101 +136,11 @@ def validate_and_audit_hospital_prompts(
         or len({row.prompt_sha256 for row in rows}) != expected_count
     ):
         raise ValueError(
-            f"the draft family must contain {expected_count} distinct rendered prompts"
+            f"the hospital family must contain {expected_count} distinct rendered prompts"
         )
     if {row.task_block_sha256 for row in rows} != {expected_task_hash}:
         raise ValueError("the task block must be byte-identical across all prompts")
     return tuple(rows)
-
-
-def validate_prompt_fixture_directory(root: Path) -> None:
-    if not isinstance(root, Path):
-        raise TypeError("root must be a Path")
-    manifest_path = root / "manifest.json"
-    try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except OSError as error:
-        raise ValueError(f"cannot read draft fixture manifest: {error}") from error
-    except json.JSONDecodeError as error:
-        raise ValueError("draft fixture manifest is not valid JSON") from error
-    if not isinstance(manifest, dict) or not isinstance(manifest.get("cells"), list):
-        raise ValueError("draft fixture manifest must contain a cell list")
-    prompt_version = manifest.get("prompt_version")
-    if prompt_version not in {"draft_v0", "draft_v3", "draft_v4"}:
-        raise ValueError("draft fixture manifest has an unsupported prompt version")
-    expected_manifest = {
-        "schema_version": 3,
-        "status": "draft_unreviewed",
-        "prompt_version": prompt_version,
-        "surface_scope": "social_context_block_only",
-        "alternative_prose_operation": "close_paraphrase_same_fact_order",
-        "review_status": "pending",
-        "authorization_status": "unauthorized",
-        "human_review_complete": False,
-        "paid_calls_authorized": False,
-        "frozen": False,
-    }
-    if any(manifest.get(key) != value for key, value in expected_manifest.items()):
-        raise ValueError("draft fixture manifest metadata does not match its version")
-    entries = manifest["cells"]
-    expected_count = len(hospital_cells(prompt_version))
-    if len(entries) != expected_count:
-        raise ValueError(
-            f"draft fixture manifest must contain {expected_count} cells"
-        )
-    by_id = {
-        entry.get("condition_id"): entry
-        for entry in entries
-        if isinstance(entry, dict) and isinstance(entry.get("condition_id"), str)
-    }
-    if len(by_id) != expected_count:
-        raise ValueError("draft fixture condition identifiers must be unique")
-    expected_files = {"manifest.json"}
-    for cell in hospital_cells(prompt_version):
-        entry = by_id.get(cell.condition_id)
-        if not isinstance(entry, dict):
-            raise ValueError(f"missing draft fixture for {cell.condition_id}")
-        expected_factors = {
-            "prompt_version": cell.prompt_version,
-            "social_world": cell.world.value,
-            "context_condition": cell.context.value,
-            "surface_version": cell.surface.value,
-        }
-        if any(entry.get(key) != value for key, value in expected_factors.items()):
-            raise ValueError(f"draft fixture factors mismatch in {cell.condition_id}")
-        file_name = entry.get("file")
-        expected_name = "__".join(
-            (cell.world.value, cell.context.value, cell.surface.value)
-        ) + ".txt"
-        if file_name != expected_name or Path(file_name).name != file_name:
-            raise ValueError(f"invalid draft fixture file for {cell.condition_id}")
-        expected_files.add(file_name)
-        try:
-            fixture = (root / file_name).read_text(encoding="utf-8")
-        except OSError as error:
-            raise ValueError(f"cannot read draft fixture {file_name}: {error}") from error
-        rendered = render_prompt(cell)
-        if fixture != rendered.text:
-            raise ValueError(f"draft fixture drift in {cell.condition_id}")
-        if entry.get("prompt_sha256") != text_sha256(fixture):
-            raise ValueError(f"draft fixture hash mismatch in {cell.condition_id}")
-        if entry.get("task_block_sha256") != text_sha256(rendered.task_block):
-            raise ValueError(f"task-block hash mismatch in {cell.condition_id}")
-        if entry.get("fact_ids") != list(rendered.fact_ids):
-            raise ValueError(f"fact checklist mismatch in {cell.condition_id}")
-        if entry.get("social_fact_ids") != list(rendered.social_fact_ids):
-            raise ValueError(f"social fact checklist mismatch in {cell.condition_id}")
-        expected_lengths = {
-            "prompt_characters": len(rendered.text),
-            "prompt_words": len(rendered.text.split()),
-            "social_context_characters": len(rendered.social_context),
-            "social_context_words": len(rendered.social_context.split()),
-        }
-        if any(entry.get(key) != value for key, value in expected_lengths.items()):
-            raise ValueError(f"draft fixture length audit mismatch in {cell.condition_id}")
-    actual_files = {path.name for path in root.iterdir() if path.is_file()}
-    if actual_files != expected_files:
-        raise ValueError("draft fixture directory contains missing or unexpected files")
 
 
 def _validate_task_contract(text: str, condition_id: str) -> None:

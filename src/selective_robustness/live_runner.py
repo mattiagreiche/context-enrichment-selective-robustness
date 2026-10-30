@@ -71,7 +71,7 @@ class StudyAuthorization:
     maximum_total_calls: int
     declared_human_review_complete: bool
     paid_calls_authorized: bool
-    measurement_protocol: str = "action_frequency_v1"
+    measurement_protocol: str = "first_action_branch_v1"
 
 
 @dataclass(frozen=True, slots=True)
@@ -88,7 +88,7 @@ class LiveRunRequest:
     reviewed_prompt_acknowledgement: bool
     max_calls: int = 1
     run_manifest_sha256: str | None = None
-    measurement_protocol: str = "action_frequency_v1"
+    measurement_protocol: str = "first_action_branch_v1"
 
     def validate(self) -> None:
         if not isinstance(self.cell, PromptCell):
@@ -128,10 +128,7 @@ class LiveRunRequest:
             raise ValueError(
                 "the one-call primitive requires an immutable pilot manifest binding"
             )
-        if self.measurement_protocol not in {
-            "action_frequency_v1",
-            "first_action_branch_v1",
-        }:
+        if self.measurement_protocol != "first_action_branch_v1":
             raise ValueError("measurement_protocol is invalid")
 
 
@@ -277,7 +274,7 @@ def run_live_once(request: LiveRunRequest) -> LiveRunResult:
 
 def verify_live_governance(
     prompt_version: str,
-    measurement_protocol: str = "action_frequency_v1",
+    measurement_protocol: str = "first_action_branch_v1",
 ) -> tuple[ReviewedFixture, StudyAuthorization]:
     """Verify complete fixture review plus declared study-level authorization."""
 
@@ -382,15 +379,12 @@ def _load_complete_reviewed_fixture(prompt_version: str) -> ReviewedFixture:
 def _load_study_authorization(
     prompt_version: str, measurement_protocol: str
 ) -> StudyAuthorization:
-    names = {
-        "action_frequency_v1": "design.yaml",
-        "first_action_branch_v1": "probability_design.yaml",
-    }
-    try:
-        name = names[measurement_protocol]
-    except KeyError as exc:
-        raise ValueError("unknown measurement protocol") from exc
-    path = repository_root() / "experiments" / "studies" / "hospital_pilot" / name
+    if measurement_protocol != "first_action_branch_v1":
+        raise ValueError("unknown measurement protocol")
+    path = (
+        repository_root() / "experiments" / "studies" / "hospital_pilot"
+        / "probability_design.yaml"
+    )
     text = _read_text(path, "study authorization artifact")
     try:
         value = yaml.safe_load(text)
@@ -422,7 +416,7 @@ def _load_study_authorization(
     if (
         study.get("stage") != "development"
         or study.get("prompt_version") != prompt_version
-        or study.get("measurement_protocol", "action_frequency_v1")
+        or study.get("measurement_protocol", "first_action_branch_v1")
         != measurement_protocol
         or not review_complete
         or not paid_authorized

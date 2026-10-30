@@ -27,7 +27,7 @@ def context_conditions_for(prompt_version: str) -> tuple[ContextCondition, ...]:
     return _FOUR_CONTEXT_CONDITIONS
 
 
-def hospital_cells(prompt_version: str = "draft_v0") -> tuple[PromptCell, ...]:
+def hospital_cells(prompt_version: str = "pilot_v4") -> tuple[PromptCell, ...]:
     contexts = context_conditions_for(prompt_version)
     return tuple(
         PromptCell(

@@ -70,7 +70,7 @@ class PromptCell:
     context: ContextCondition
     surface: SurfaceVersion
     scenario: str = "hospital"
-    prompt_version: str = "draft_v0"
+    prompt_version: str = "pilot_v4"
 
     def __post_init__(self) -> None:
         if not isinstance(self.world, SocialWorld):

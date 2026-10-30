@@ -51,7 +51,7 @@ class PilotRunRequest:
     paid_pilot_acknowledgement: str
     reviewed_prompt_acknowledgement: bool
     study_stage: str = "development"
-    measurement_protocol: str = "action_frequency_v1"
+    measurement_protocol: str = "first_action_branch_v1"
 
     def validate(self) -> None:
         if (
@@ -89,10 +89,7 @@ class PilotRunRequest:
             raise ValueError("randomization_seed must be an integer")
         if self.study_stage != "development":
             raise ValueError("the pilot workflow is development-only")
-        if self.measurement_protocol not in {
-            "action_frequency_v1",
-            "first_action_branch_v1",
-        }:
+        if self.measurement_protocol != "first_action_branch_v1":
             raise ValueError("measurement_protocol is invalid")
         if not self.reviewed_prompt_acknowledgement:
             raise ValueError(
@@ -264,7 +261,7 @@ def execute_pilot_run(
     payload = artifact.payload
     prompt_version = _required_text(payload.get("prompt_version"), "prompt_version")
     measurement_protocol = _required_text(
-        payload.get("measurement_protocol", "action_frequency_v1"),
+        payload.get("measurement_protocol", "first_action_branch_v1"),
         "measurement_protocol",
     )
     fixture, authorization = verify_live_governance(

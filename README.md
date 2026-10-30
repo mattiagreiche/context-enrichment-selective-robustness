@@ -9,10 +9,10 @@ This repository contains the materials for the hospital pilot reported in *A Fra
 - `experiments/studies/hospital_pilot/probability_design.yaml` and `configs/hospital-probability.yaml`: the paper's probability protocol and sampling settings.
 - `data/paper_calls.csv`: the 800 call-level probability estimates and censoring bounds.
 - `data/paper_results.json`: the published cell-level measures and bootstrap intervals.
-- `analysis/reproduce.py` and `analysis/censoring.py`: validate the released data, recompute the measures and censoring ranges, and run a fresh 10,000-resample within-cell bootstrap.
+- `analysis/export_calls.py`, `analysis/reproduce.py`, and `analysis/censoring.py`: turn four run summaries into the call table, validate the released data, recompute the measures and censoring ranges, and run a fresh 10,000-resample within-cell bootstrap.
 - `analysis/figure_selective_robustness.py`: regenerates the paper's labeled figure as PDF and SVG from the released result values.
 
-Earlier development pilots and action-frequency experiments are not part of this release.
+Earlier development pilot fixtures and action-frequency data are not part of this release.
 
 ## Install and verify
 
@@ -20,6 +20,7 @@ Python 3.11+ and [`uv`](https://docs.astral.sh/uv/) are required. The package pi
 
 ```bash
 uv sync --all-extras
+uv run python -m pytest
 uv run selective-robustness validate
 uv run selective-robustness probability-plan
 uv run selective-robustness smoke
@@ -62,5 +63,21 @@ uv run selective-robustness probability-summarize \
 ```
 
 Repeat with `gpt-5.6-terra` and a separate output directory, then run a second five-call batch for each model with new output directories and randomization seeds. The schedule seed orders cells; it does not seed provider responses. The requests omit `top_p`, matching the original protocol. All model calls are paid and create new stochastic observations, so they will not reproduce the released values exactly. The runner writes immutable manifests and append-only call ledgers under ignored `results/`.
+
+After summarizing all four complete batches, build the call table and compute the paper's measures on the new observations:
+
+```bash
+uv run python analysis/export_calls.py \
+  --sol-initial results/sol-batch-1/summary.json \
+  --sol-extension results/sol-batch-2/summary.json \
+  --terra-initial results/terra-batch-1/summary.json \
+  --terra-extension results/terra-batch-2/summary.json \
+  --output results/new-paper-calls.csv
+uv run python analysis/reproduce.py \
+  --calls results/new-paper-calls.csv \
+  --output results/new-analysis
+```
+
+The export checks the model, protocol, frozen prompt hashes, and five observations per cell in each batch. The analysis validates the same 800-call design and reports new point estimates and bootstrap intervals without comparing them to the published values. The 800-call design requires four complete batches; provider failures must be reported rather than silently replaced.
 
 The original data and censoring details are described in [data/README.md](data/README.md). The source code is MIT licensed; see [LICENSE](LICENSE).

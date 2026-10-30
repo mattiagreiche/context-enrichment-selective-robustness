@@ -29,7 +29,7 @@ class HospitalBackend(BackendApp):
         social_world: str,
         context_condition: str,
         surface_version: str,
-        prompt_version: str = "draft_v0",
+        prompt_version: str = "pilot_v4",
         study_stage: str = "development",
     ) -> None:
         super().__init__()

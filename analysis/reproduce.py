@@ -35,8 +35,8 @@ def measures(cells: np.ndarray) -> tuple[float, float]:
     return float(surface), float(response)
 
 
-def load() -> tuple[dict[tuple[str, str, str, str], list[float]], dict]:
-    paper = json.loads((ROOT / "data/paper_results.json").read_text())
+def load(calls_path: Path | None = None, *, verify_published: bool = True) -> tuple[dict[tuple[str, str, str, str], list[float]], dict | None, Counter]:
+    paper = json.loads((ROOT / "data/paper_results.json").read_text()) if verify_published else None
     manifest = json.loads(
         (ROOT / "tests/fixtures/prompts/hospital/pilot_v4/manifest.json").read_text()
     )
@@ -45,7 +45,7 @@ def load() -> tuple[dict[tuple[str, str, str, str], list[float]], dict]:
     values: dict[tuple[str, str, str, str], list[float]] = defaultdict(list)
     counts: Counter[str] = Counter()
     batches: Counter[tuple[str, str, str, str, str]] = Counter()
-    with (ROOT / "data/paper_calls.csv").open(newline="") as stream:
+    with (calls_path or ROOT / "data/paper_calls.csv").open(newline="") as stream:
         rows = list(csv.DictReader(stream))
     assert len(rows) == 800
     for row in rows:
@@ -74,15 +74,17 @@ def load() -> tuple[dict[tuple[str, str, str, str], list[float]], dict]:
         counts[model, row["status"]] += 1
     assert len(values) == 80 and all(len(call_values) == 10 for call_values in values.values())
     assert len(batches) == 160 and set(batches.values()) == {5}
-    assert sum(n for (_, status), n in counts.items() if status != "complete") == 339
-    for model in MODELS:
-        assert {status: count for (name, status), count in counts.items() if name == model} == paper["models"][model]["status_counts"]
-    return values, paper
+    if paper is not None:
+        assert sum(n for (_, status), n in counts.items() if status != "complete") == 339
+        for model in MODELS:
+            assert {status: count for (name, status), count in counts.items() if name == model} == paper["models"][model]["status_counts"]
+    return values, paper, counts
 
 
-def analyze(values: dict, paper: dict, *, seed: int = 20260923) -> dict:
+def analyze(values: dict, paper: dict | None, counts: Counter, *, seed: int = 20260923) -> dict:
     rng = np.random.default_rng(seed)
-    result = {"calls": 800, "cells": 80, "censored_calls": 339, "bootstrap_seed": seed, "models": {}}
+    censored = sum(n for (_, status), n in counts.items() if status != "complete")
+    result = {"calls": 800, "cells": 80, "censored_calls": censored, "bootstrap_seed": seed, "models": {}}
     for model in MODELS:
         result["models"][model] = {}
         for context in CONTEXTS:
@@ -92,9 +94,10 @@ def analyze(values: dict, paper: dict, *, seed: int = 20260923) -> dict:
             ])
             assert calls.shape == (2, 4, 10)
             surface, response = measures(calls.mean(axis=-1))
-            published = paper["models"][model]["pooled_ten_call_estimates"][context]
-            assert abs(surface - published["surface_sensitivity_pp"]) < 1e-10
-            assert abs(response - published["world_response_pp"]) < 1e-10
+            if paper is not None:
+                published = paper["models"][model]["pooled_ten_call_estimates"][context]
+                assert abs(surface - published["surface_sensitivity_pp"]) < 1e-10
+                assert abs(response - published["world_response_pp"]) < 1e-10
             indices = rng.integers(0, 10, size=(10_000, 2, 4, 10))
             sampled = np.take_along_axis(np.broadcast_to(calls, indices.shape), indices, axis=-1).mean(axis=-1)
             boot_surface = np.abs(sampled[:, :, 1:] - sampled[:, :, :1]).mean(axis=(1, 2)) * 100
@@ -117,13 +120,15 @@ def analyze(values: dict, paper: dict, *, seed: int = 20260923) -> dict:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("--calls", type=Path, help="analyze a new CSV exported from four run summaries")
+    parser.add_argument("--seed", type=int, default=20260923)
     parser.add_argument("--output", type=Path, default=ROOT / "results/reproduction")
     args = parser.parse_args()
-    values, paper = load()
-    result = analyze(values, paper)
+    values, paper, counts = load(args.calls, verify_published=args.calls is None)
+    result = analyze(values, paper, counts, seed=args.seed)
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "recomputed.json").write_text(json.dumps(result, indent=2) + "\n")
-    print(f"Verified 800 calls, 80 cells, 339 censored calls; wrote {args.output}")
+    print(f"Verified 800 calls, 80 cells, {result['censored_calls']} censored calls; wrote {args.output}")
 
 
 if __name__ == "__main__":

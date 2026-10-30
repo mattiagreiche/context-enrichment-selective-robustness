@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from .catalog import context_conditions_for, hospital_cells, validate_hospital_catalog
-from .domain import ContextCondition, PromptCell, SocialWorld, SurfaceVersion
+from .domain import SocialWorld, SurfaceVersion
 from .prompts import render_prompt
 from .sampling import ReasoningEffort
 from .validation import (
@@ -37,10 +37,6 @@ def _parser() -> argparse.ArgumentParser:
         "smoke", help="run one scripted native SiliSocS episode"
     )
     smoke.add_argument("--output", type=Path, default=Path("results/silisocs-smoke"))
-    live = commands.add_parser(
-        "live",
-        help="execute or resume an immutable pilot schedule",
-    )
     pilot_prepare = commands.add_parser(
         "pilot-prepare", help="write an immutable reviewed-pilot run manifest"
     )
@@ -71,34 +67,14 @@ def _parser() -> argparse.ArgumentParser:
     pilot_run = commands.add_parser(
         "pilot-run", help="execute or safely resume an immutable pilot schedule"
     )
-    for execution_command in (live, pilot_run):
-        execution_command.add_argument("--manifest", required=True, type=Path)
-        execution_command.add_argument("--allow-paid", action="store_true")
-        execution_command.add_argument("--acknowledge-paid-pilot", default="")
-        execution_command.add_argument(
-            "--through-replicate",
-            type=int,
-            help="stop after this complete replicate block; resume uses the same manifest",
-        )
-    summarize = commands.add_parser(
-        "summarize",
-        help="validate native focal events and compute descriptive estimands",
+    pilot_run.add_argument("--manifest", required=True, type=Path)
+    pilot_run.add_argument("--allow-paid", action="store_true")
+    pilot_run.add_argument("--acknowledge-paid-pilot", default="")
+    pilot_run.add_argument(
+        "--through-replicate",
+        type=int,
+        help="stop after this complete replicate block; resume uses the same manifest",
     )
-    summarize.add_argument(
-        "--manifest",
-        required=True,
-        type=Path,
-        help="immutable pilot run_manifest.json with its hash sidecar",
-    )
-    summarize.add_argument(
-        "--events",
-        type=Path,
-        help=(
-            "deliberate aggregate event artifact; by default each scheduled "
-            "calls/<call_id>/action_events.jsonl is loaded separately"
-        ),
-    )
-    summarize.add_argument("--output", type=Path)
     probability_summarize = commands.add_parser(
         "probability-summarize",
         help="validate and summarize first action-branch probabilities",
@@ -448,7 +424,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             print(f"wrote immutable pilot manifest: {artifact.path}")
             return 0
-        if arguments.command in {"live", "pilot-run"}:
+        if arguments.command == "pilot-run":
             from .pilot_workflow import execute_pilot_run
 
             completed = execute_pilot_run(
@@ -458,88 +434,6 @@ def main(argv: list[str] | None = None) -> int:
                 through_replicate=arguments.through_replicate,
             )
             print(f"completed {len(completed)} newly scheduled pilot calls")
-            return 0
-        if arguments.command == "summarize":
-            from .pilot_workflow import (
-                load_pilot_manifest,
-                scheduled_calls_from_manifest,
-            )
-            from .results import summarize_results
-
-            manifest = load_pilot_manifest(arguments.manifest)
-            schedule = scheduled_calls_from_manifest(manifest.path)
-            study_stage = _required_manifest_text(manifest.payload, "study_stage")
-            requested_model = _required_manifest_text(
-                manifest.payload, "requested_model_identifier"
-            )
-            prompt_version = _required_manifest_text(manifest.payload, "prompt_version")
-            decisions = _load_scheduled_decisions(
-                manifest_path=manifest.path,
-                schedule=schedule,
-                aggregate_events=arguments.events,
-                study_stage=study_stage,
-                requested_model_identifier=requested_model,
-                prompt_version=prompt_version,
-                manifest_sha256=manifest.sha256,
-            )
-            run_state_source = _validate_completed_pilot_state(
-                manifest_path=manifest.path,
-                manifest_sha256=manifest.sha256,
-                manifest_payload=manifest.payload,
-                schedule=schedule,
-                decisions=decisions,
-            )
-            summary = summarize_results(decisions, scheduled_calls=schedule)
-            returned_models = sorted(
-                {decision.returned_model_identifier for decision in decisions}
-            )
-            event_sources = sorted(
-                {
-                    (decision.artifact_source, decision.source_artifact_sha256)
-                    for decision in decisions
-                }
-            )
-            payload = {
-                "schema_version": 2,
-                "analysis": "hospital_pilot_descriptive_estimands",
-                "analysis_estimands": {
-                    "conditional_transfer_rate_among_valid": (
-                        "TRANSFER / valid responses"
-                    ),
-                    "invalid_response_rate_over_all_scheduled": (
-                        "INVALID / all scheduled calls"
-                    ),
-                    "transfer_lower_bound_over_all_scheduled": (
-                        "TRANSFER / all scheduled calls"
-                    ),
-                    "transfer_upper_bound_over_all_scheduled": (
-                        "(TRANSFER + INVALID) / all scheduled calls"
-                    ),
-                    "invalid_rate_contrasts": "across surfaces and social worlds",
-                },
-                "study_stage": study_stage,
-                "requested_model_identifier": requested_model,
-                "returned_model_identifiers": returned_models,
-                "prompt_version": prompt_version,
-                "scheduled_call_count": len(schedule),
-                "run_manifest": {
-                    "path": str(manifest.path),
-                    "sha256": manifest.sha256,
-                },
-                "run_state": run_state_source,
-                "event_sources": [
-                    {"path": path, "sha256": artifact_hash}
-                    for path, artifact_hash in event_sources
-                ],
-                "summary": asdict(summary),
-            }
-            text = json.dumps(payload, indent=2) + "\n"
-            if arguments.output is None:
-                print(text, end="")
-            else:
-                arguments.output.parent.mkdir(parents=True, exist_ok=True)
-                arguments.output.write_text(text, encoding="utf-8")
-                print(f"wrote descriptive summary to {arguments.output}")
             return 0
         if arguments.command == "probability-summarize":
             from .pilot_workflow import (
