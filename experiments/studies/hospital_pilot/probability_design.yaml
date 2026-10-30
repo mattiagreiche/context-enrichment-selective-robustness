@@ -24,7 +24,6 @@ estimand:
   missing_branch_policy: censored_not_zero
   top_logprob_tail_reported: true
   completion_fidelity_required: true
-  action_frequency_results_pooled: false
 
 factors:
   social_world: [regional_mutual_aid, local_emergency_reserve]
@@ -49,8 +48,6 @@ model_snapshots: [gpt-5.6-sol, gpt-5.6-terra]
 stimulus_contract:
   status: reviewed
   prompt_source: frozen_pilot_v4
-  prompt_bytes_changed: false
-  response_instruction_changed: false
   response_labels: [TRANSFER, RETAIN]
   review_status: complete
 
@@ -59,7 +56,6 @@ status:
   human_manipulation_check: complete
   ethics_determination: complete
   paid_calls_authorized: true
-  authorization_basis: direct_study_owner_extension_approval_2026-08-29
   execution_requires_separate_exact_operator_acknowledgement: true
 
 pilot_workflow:

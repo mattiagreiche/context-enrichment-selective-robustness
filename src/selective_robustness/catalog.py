@@ -1,4 +1,4 @@
-"""Factorial catalog for the hospital development family."""
+"""Factorial catalog for the hospital experiment."""
 
 from __future__ import annotations
 
@@ -7,24 +7,21 @@ from collections import Counter
 from .domain import ContextCondition, PromptCell, SocialWorld, SurfaceVersion
 
 
-_FOUR_CONTEXT_CONDITIONS = (
+_CONTEXT_CONDITIONS = (
     ContextCondition.MINIMAL,
     ContextCondition.NEUTRAL_PADDED,
     ContextCondition.GENERIC_BACKGROUND,
     ContextCondition.DECISION_GROUNDED,
-)
-_FIVE_CONTEXT_CONDITIONS = _FOUR_CONTEXT_CONDITIONS + (
     ContextCondition.NORMATIVE_GROUNDED,
 )
-_FIVE_CONTEXT_PROMPT_VERSIONS = frozenset({"draft_v4", "pilot_v4"})
 
 
 def context_conditions_for(prompt_version: str) -> tuple[ContextCondition, ...]:
-    """Return the context crossing defined by a prompt version."""
+    """Return the context crossing for the published prompt version."""
 
-    if prompt_version in _FIVE_CONTEXT_PROMPT_VERSIONS:
-        return _FIVE_CONTEXT_CONDITIONS
-    return _FOUR_CONTEXT_CONDITIONS
+    if prompt_version != "pilot_v4":
+        raise ValueError("unsupported prompt version")
+    return _CONTEXT_CONDITIONS
 
 
 def hospital_cells(prompt_version: str = "pilot_v4") -> tuple[PromptCell, ...]:

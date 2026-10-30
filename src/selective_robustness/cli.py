@@ -12,7 +12,6 @@ from typing import Any
 
 from .catalog import context_conditions_for, hospital_cells, validate_hospital_catalog
 from .domain import SocialWorld, SurfaceVersion
-from .prompts import render_prompt
 from .sampling import ReasoningEffort
 from .validation import (
     validate_and_audit_hospital_prompts,
@@ -28,11 +27,6 @@ def _parser() -> argparse.ArgumentParser:
         help="show the reviewed full-family first-branch probability protocol",
     )
     probability_plan.add_argument("--json", action="store_true", dest="as_json")
-    render = commands.add_parser("render", help="write the frozen prompts")
-    render.add_argument(
-        "--output", type=Path, default=Path("outputs/hospital-pilot-v4")
-    )
-    render.add_argument("--prompt-version", default="pilot_v4", choices=["pilot_v4"])
     smoke = commands.add_parser(
         "smoke", help="run one scripted native SiliSocS episode"
     )
@@ -92,62 +86,6 @@ def validate() -> None:
     validate_hospital_catalog(cells)
     validate_and_audit_hospital_prompts(cells)
     verify_live_governance("pilot_v4", "first_action_branch_v1")
-
-
-def _render_all(output: Path, prompt_version: str = "pilot_v4") -> None:
-    output.mkdir(parents=True, exist_ok=True)
-    cells = hospital_cells(prompt_version)
-    audits = {
-        row.condition_id: row for row in validate_and_audit_hospital_prompts(cells)
-    }
-    manifest = []
-    for cell in cells:
-        rendered = render_prompt(cell)
-        name = (
-            "__".join((cell.world.value, cell.context.value, cell.surface.value))
-            + ".txt"
-        )
-        (output / name).write_text(rendered.text, encoding="utf-8")
-        manifest.append(
-            {
-                "condition_id": cell.condition_id,
-                "prompt_version": cell.prompt_version,
-                "social_world": cell.world.value,
-                "context_condition": cell.context.value,
-                "surface_version": cell.surface.value,
-                "file": name,
-                "fact_ids": list(rendered.fact_ids),
-                "social_fact_ids": list(rendered.social_fact_ids),
-                "prompt_sha256": audits[cell.condition_id].prompt_sha256,
-                "task_block_sha256": audits[cell.condition_id].task_block_sha256,
-                "prompt_characters": audits[cell.condition_id].prompt_characters,
-                "prompt_words": audits[cell.condition_id].prompt_words,
-                "social_context_characters": audits[
-                    cell.condition_id
-                ].social_context_characters,
-                "social_context_words": audits[cell.condition_id].social_context_words,
-            }
-        )
-    (output / "manifest.json").write_text(
-        json.dumps(
-            {
-                "schema_version": 3,
-                "status": "draft_unreviewed",
-                "prompt_version": prompt_version,
-                "surface_scope": "social_context_block_only",
-                "alternative_prose_operation": "close_paraphrase_same_fact_order",
-                "review_status": "pending",
-                "authorization_status": "unauthorized",
-                "human_review_complete": False,
-                "paid_calls_authorized": False,
-                "frozen": False,
-                "cells": manifest,
-            },
-            indent=2,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
 
 
 def _required_manifest_text(payload: dict[str, Any], name: str) -> str:
@@ -343,7 +281,6 @@ def main(argv: list[str] | None = None) -> int:
                 "scenario": "hospital",
                 "prompt_version": "pilot_v4",
                 "measurement_protocol": authorization.measurement_protocol,
-                "prompt_bytes_changed": False,
                 "social_worlds": len(SocialWorld),
                 "context_conditions": len(context_conditions_for("pilot_v4")),
                 "surface_versions": len(SurfaceVersion),
@@ -364,17 +301,9 @@ def main(argv: list[str] | None = None) -> int:
                 print(json.dumps(summary, indent=2))
             else:
                 print(
-                    "40 unchanged pilot_v4 templates; 5 independent calls per "
+                    "40 frozen pilot_v4 templates; 5 independent calls per "
                     "template; 200 calls per model and 400 Sol-plus-Terra calls"
                 )
-            return 0
-        if arguments.command == "render":
-            validate()
-            _render_all(arguments.output, arguments.prompt_version)
-            print(
-                f"rendered {len(hospital_cells(arguments.prompt_version))} prompts "
-                f"to {arguments.output}"
-            )
             return 0
         if arguments.command == "smoke":
             from .silisocs_runner import run_scripted_smoke

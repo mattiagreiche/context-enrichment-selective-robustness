@@ -83,6 +83,8 @@ class PromptCell:
             value = getattr(self, name)
             if not isinstance(value, str) or not value or value != value.strip():
                 raise ValueError(f"{name} must be a non-empty trimmed string")
+        if self.prompt_version != "pilot_v4":
+            raise ValueError("unsupported prompt version")
 
     @property
     def condition_id(self) -> str:

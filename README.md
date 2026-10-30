@@ -12,8 +12,6 @@ This repository contains the materials for the hospital pilot reported in *A Fra
 - `analysis/export_calls.py`, `analysis/reproduce.py`, and `analysis/censoring.py`: turn four run summaries into the call table, validate the released data, recompute the measures and censoring ranges, and run a fresh 10,000-resample within-cell bootstrap.
 - `analysis/figure_selective_robustness.py`: regenerates the paper's labeled figure as PDF and SVG from the released result values.
 
-Earlier development pilot fixtures and action-frequency data are not part of this release.
-
 ## Install and verify
 
 Python 3.11+ and [`uv`](https://docs.astral.sh/uv/) are required. The package pins upstream [SiliSocS](https://github.com/sandbox-social/silisocs) at commit `ebe652257eafe0eb64e43e90b45aa7bccd732383`; its source is installed as a dependency and is not vendored here.

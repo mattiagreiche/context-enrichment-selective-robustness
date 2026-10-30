@@ -3,7 +3,6 @@ scenario: hospital
 prompt_version: pilot_v4
 study_stage: development
 measurement_protocol: first_action_branch_v1
-prompt_bytes_changed: false
 design:
   social_worlds: 2
   context_conditions: 5

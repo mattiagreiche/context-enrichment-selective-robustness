@@ -59,8 +59,8 @@ class PilotRunRequest:
             or ".." in self.prompt_version
         ):
             raise ValueError("prompt_version contains unsafe characters")
-        if self.prompt_version.startswith("draft"):
-            raise ValueError("pilot execution refuses unreviewed draft prompts")
+        if self.prompt_version != "pilot_v4":
+            raise ValueError("unsupported prompt version")
         if not re.fullmatch(
             r"[A-Za-z0-9][A-Za-z0-9._:-]{0,127}",
             self.requested_model_identifier,

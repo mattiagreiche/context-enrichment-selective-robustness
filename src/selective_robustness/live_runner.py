@@ -97,8 +97,8 @@ class LiveRunRequest:
             raise ValueError("model identifier contains unsafe characters")
         if not isinstance(self.sampling, SamplingSpec):
             raise TypeError("sampling must be a canonical SamplingSpec")
-        if self.cell.prompt_version.startswith("draft"):
-            raise ValueError("live execution refuses unreviewed draft prompts")
+        if self.cell.prompt_version != "pilot_v4":
+            raise ValueError("unsupported prompt version")
         if (
             not _VERSION_IDENTIFIER_PATTERN.fullmatch(self.cell.prompt_version)
             or ".." in self.cell.prompt_version
@@ -278,8 +278,8 @@ def verify_live_governance(
 ) -> tuple[ReviewedFixture, StudyAuthorization]:
     """Verify complete fixture review plus declared study-level authorization."""
 
-    if str(prompt_version).startswith("draft"):
-        raise ValueError("live execution refuses unreviewed draft prompts")
+    if prompt_version != "pilot_v4":
+        raise ValueError("unsupported prompt version")
     return (
         _load_complete_reviewed_fixture(prompt_version),
         _load_study_authorization(prompt_version, measurement_protocol),

@@ -1,4 +1,4 @@
-"""Draft hospital stimulus atoms and constrained surface renderers."""
+"""Hospital stimulus atoms and constrained surface renderers."""
 
 from __future__ import annotations
 
@@ -115,56 +115,7 @@ _CONTEXT_FACTS = {
 }
 
 
-_GROUNDED_FACTS_LEGACY = {
-    SocialWorld.REGIONAL_MUTUAL_AID: (
-        Fact(
-            "grounding.counterpart_link",
-            "Counterpart relationship",
-            "You represent Hospital A, and the other manager represents Hospital B, within that arrangement.",
-            "Within that arrangement, you represent Hospital A, and the other manager represents Hospital B.",
-        ),
-        Fact(
-            "grounding.procedure",
-            "Procedure",
-            "Its shared shortage procedure governs both designated batches in this allocation.",
-            "For this allocation, its shared shortage procedure governs both designated batches.",
-        ),
-        Fact(
-            "grounding.role_connection",
-            "Role connection",
-            "The arrangement's supply-continuity scope defines your responsibility for this decision.",
-            "For this decision, your responsibility is defined by the arrangement's supply-continuity scope.",
-        ),
-    ),
-    SocialWorld.LOCAL_EMERGENCY_RESERVE: (
-        Fact(
-            "grounding.counterpart_link",
-            "Counterpart relationship",
-            "You represent Hospital A, and the other manager represents Hospital B, within those arrangements.",
-            "Within those arrangements, you represent Hospital A, and the other manager represents Hospital B.",
-        ),
-        Fact(
-            "grounding.procedure",
-            "Procedure",
-            "Each local shortage procedure governs its hospital's designated batch in this allocation.",
-            "For this allocation, each local shortage procedure governs its hospital's designated batch.",
-        ),
-        Fact(
-            "grounding.role_connection",
-            "Role connection",
-            "The applicable arrangement's supply-continuity scope defines your responsibility for this decision.",
-            "For this decision, your responsibility is defined by the applicable arrangement's supply-continuity scope.",
-        ),
-    ),
-}
-
-
-# The v3 candidate removes the responsibility-defining language used by the
-# historical draft_v0/pilot_v1/pilot_v2 family.  These atoms describe who is
-# connected to whom, the scope used by the procedure, and how the focal batch
-# enters that procedure without directly assigning the agent a broader or
-# narrower objective.
-_GROUNDED_FACTS_V3 = {
+_GROUNDED_BASE_FACTS = {
     SocialWorld.REGIONAL_MUTUAL_AID: (
         Fact(
             "grounding.counterpart_link",
@@ -177,12 +128,6 @@ _GROUNDED_FACTS_V3 = {
             "Procedure",
             "During shortages, the network's procedure assesses supply conditions across its participating hospitals.",
             "The network's procedure assesses conditions across participating hospitals during shortages.",
-        ),
-        Fact(
-            "grounding.role_connection",
-            "Role connection",
-            "You manage Hospital A's designated batch within that regional procedure.",
-            "Within that regional procedure, you manage Hospital A's designated batch.",
         ),
     ),
     SocialWorld.LOCAL_EMERGENCY_RESERVE: (
@@ -198,28 +143,15 @@ _GROUNDED_FACTS_V3 = {
             "During shortages, each system's procedure assesses supply conditions within its own hospital.",
             "Each system's procedure assesses conditions within its own hospital during shortages.",
         ),
-        Fact(
-            "grounding.role_connection",
-            "Role connection",
-            "You manage Hospital A's designated batch within Hospital A's local procedure.",
-            "Within Hospital A's local procedure, you manage Hospital A's designated batch.",
-        ),
     ),
 }
 
 
-_V3_PROMPT_VERSIONS = frozenset({"draft_v3", "pilot_v3"})
-
-
-# The v4 family adds a matched normative condition. Both grounded conditions
-# use the same counterpart and procedure facts. Only the final atom changes:
-# descriptive grounding states that the procedure covers the decision, while
-# normative grounding binds the agent's role to following that procedure.
-_GROUNDED_FACTS_V4 = {
+_GROUNDED_FACTS = {
     ContextCondition.DECISION_GROUNDED: {
         SocialWorld.REGIONAL_MUTUAL_AID: (
-            _GROUNDED_FACTS_V3[SocialWorld.REGIONAL_MUTUAL_AID][0],
-            _GROUNDED_FACTS_V3[SocialWorld.REGIONAL_MUTUAL_AID][1],
+            _GROUNDED_BASE_FACTS[SocialWorld.REGIONAL_MUTUAL_AID][0],
+            _GROUNDED_BASE_FACTS[SocialWorld.REGIONAL_MUTUAL_AID][1],
             Fact(
                 "grounding.role_connection",
                 "Decision coverage",
@@ -228,8 +160,8 @@ _GROUNDED_FACTS_V4 = {
             ),
         ),
         SocialWorld.LOCAL_EMERGENCY_RESERVE: (
-            _GROUNDED_FACTS_V3[SocialWorld.LOCAL_EMERGENCY_RESERVE][0],
-            _GROUNDED_FACTS_V3[SocialWorld.LOCAL_EMERGENCY_RESERVE][1],
+            _GROUNDED_BASE_FACTS[SocialWorld.LOCAL_EMERGENCY_RESERVE][0],
+            _GROUNDED_BASE_FACTS[SocialWorld.LOCAL_EMERGENCY_RESERVE][1],
             Fact(
                 "grounding.role_connection",
                 "Decision coverage",
@@ -240,8 +172,8 @@ _GROUNDED_FACTS_V4 = {
     },
     ContextCondition.NORMATIVE_GROUNDED: {
         SocialWorld.REGIONAL_MUTUAL_AID: (
-            _GROUNDED_FACTS_V3[SocialWorld.REGIONAL_MUTUAL_AID][0],
-            _GROUNDED_FACTS_V3[SocialWorld.REGIONAL_MUTUAL_AID][1],
+            _GROUNDED_BASE_FACTS[SocialWorld.REGIONAL_MUTUAL_AID][0],
+            _GROUNDED_BASE_FACTS[SocialWorld.REGIONAL_MUTUAL_AID][1],
             Fact(
                 "grounding.role_obligation",
                 "Role requirement",
@@ -250,8 +182,8 @@ _GROUNDED_FACTS_V4 = {
             ),
         ),
         SocialWorld.LOCAL_EMERGENCY_RESERVE: (
-            _GROUNDED_FACTS_V3[SocialWorld.LOCAL_EMERGENCY_RESERVE][0],
-            _GROUNDED_FACTS_V3[SocialWorld.LOCAL_EMERGENCY_RESERVE][1],
+            _GROUNDED_BASE_FACTS[SocialWorld.LOCAL_EMERGENCY_RESERVE][0],
+            _GROUNDED_BASE_FACTS[SocialWorld.LOCAL_EMERGENCY_RESERVE][1],
             Fact(
                 "grounding.role_obligation",
                 "Role requirement",
@@ -261,9 +193,6 @@ _GROUNDED_FACTS_V4 = {
         ),
     },
 }
-
-
-_V4_PROMPT_VERSIONS = frozenset({"draft_v4", "pilot_v4"})
 
 
 _ACTION_FACTS = (
@@ -327,19 +256,7 @@ def social_facts_for(cell: PromptCell) -> tuple[Fact, ...]:
         ContextCondition.DECISION_GROUNDED,
         ContextCondition.NORMATIVE_GROUNDED,
     }:
-        if cell.prompt_version in _V4_PROMPT_VERSIONS:
-            facts.extend(_GROUNDED_FACTS_V4[cell.context][cell.world])
-        elif cell.context is ContextCondition.NORMATIVE_GROUNDED:
-            raise ValueError(
-                "normative_grounded is defined only for draft_v4 and pilot_v4"
-            )
-        else:
-            grounded = (
-                _GROUNDED_FACTS_V3
-                if cell.prompt_version in _V3_PROMPT_VERSIONS
-                else _GROUNDED_FACTS_LEGACY
-            )
-            facts.extend(grounded[cell.world])
+        facts.extend(_GROUNDED_FACTS[cell.context][cell.world])
     return tuple(facts)
 
 
